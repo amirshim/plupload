@@ -589,7 +589,8 @@
 			chunk_size : 0,
 			multi_selection : true,
 			file_data_name : 'file',
-			filters : []
+			filters : [],
+                        pre_upload_cb : null
 		}, settings);
 
 		// Private methods
@@ -600,7 +601,26 @@
 				file = files[fileIndex++];
 
 				if (file.status == plupload.QUEUED) {
-					this.trigger("UploadFile", file);
+					if(settings.pre_upload_cb != null)
+					{
+						var that = this;
+						var onComplete = function() {
+							if (file.status == plupload.QUEUED) {
+								that.trigger("UploadFile", file);
+							}
+							else
+							{
+								// need to take care of fileIndex?
+								that.stop();
+							}
+						};
+						settings.pre_upload_cb.call(this, file, onComplete);
+						onComplete = null;
+					}
+					else
+					{
+						this.trigger("UploadFile", file);
+					}
 				} else {
 					uploadNext.call(this);
 				}
